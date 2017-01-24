@@ -1,0 +1,139 @@
+---
+title: "Impute evaluation vignette"
+output: html_document
+---
+## Package install and data import
+
+```{r message=FALSE}
+library(magrittr)
+library(knitr)
+library(ggplot2)
+library(reshape2)
+source('Imputation evaluations.R')
+data_test <- read.csv('OB_data/Ob_met_nona.csv', row.names = 1)
+group <- rownames(data_test) %>% gsub('()-.*', '\\1', .) %>% as.factor()
+```
+
+```{r echo=FALSE}
+kable(head(data_test[, 1:8]), format = 'markdown')
+print(group)
+```
+
+# MCAR
+## MCAR generation and imputation
+```{r}
+MCAR_list <- MCAR_gen_imp(data_c = data_test, prop = seq(.1, .5, .1), impute_list = c('kNN_wrapper', 'SVD_wrapper', 'Mean_wrapper', 'Median_wrapper', 'RF_wrapper'), cores = 10)
+```
+
+## MCAR NRMSE evaluation and plot
+```{r echo=TRUE}
+MCAR_NRMSE_list <- NRMSE_cal_plot(MCAR_list, plot = T, x = 'Miss_Prop')
+```
+
+```{r echo=FALSE}
+kable(head(MCAR_NRMSE_list$NRMSE))
+cat('The above table shows the NRMSE of different imputaion methods')
+kable(head(MCAR_NRMSE_list$NRMSE_melt))
+cat('The above melted table is good for ggplot2')
+```
+
+## MCAR PCA Procrustes analysis and plot
+```{r echo=TRUE}
+MCAR_PCA_ProSS_list <- Procrustes_cal_plot(MCAR_list, DR = 'PCA', nPCs = 2, x = 'Miss_Prop', plot = T)
+```
+
+```{r echo=FALSE}
+kable(head(MCAR_PCA_ProSS_list$Pro_SS))
+cat('The above table shows the Procrustes Sum of Squared Error of different imputaion methods')
+kable(head(MCAR_PCA_ProSS_list$Pro_SS_melt))
+cat('The above melted table is good for ggplot2')
+```
+
+## MCAR T-test results correlation
+```{r echo=TRUE}
+MCAR_Ttest_cor_list <- Ttest_cor_cal_plot(MCAR_list, group = group, plot = T, x = 'Miss_Prop', cor = 'P')
+```
+```{r echo=FALSE}
+kable(head(MCAR_Ttest_cor_list$P_cor))
+cat('The above table shows the Pearson Correlation of log T-test P-values between imputed data and complete data')
+kable(head(MCAR_Ttest_cor_list$S_cor))
+cat('The above table shows the Spearman Correlation of T-test P-values between imputed data and complete data')
+```
+
+## MCAR PLS Procrustes analysis and plot
+```{r echo=TRUE}
+MCAR_PLS_ProSS_list <- Procrustes_cal_plot(MCAR_list, DR = 'PLS', nPCs = 2, outcome = group, x = 'Miss_Prop', plot = T)
+```
+
+```{r echo=FALSE}
+kable(head(MCAR_PLS_ProSS_list$Pro_SS))
+cat('The above table shows the Procrustes Sum of Squared Error of different imputaion methods')
+kable(head(MCAR_PLS_ProSS_list$Pro_SS_melt))
+cat('The above melted table is good for ggplot2')
+```
+
+# MNAR
+## MNAR generation and imputation
+```{r}
+MNAR_list <- MNAR_gen_imp(data_c = data_test, mis_var_prop = seq(.1, .8, .1), var_mis_prop = seq(.1, .6, .01), impute_list = c('kNN_wrapper', 'SVD_wrapper', 'QRILC_wrapper', 'HM_wrapper', 'Zero_wrapper'), cores = 5)
+```
+
+## MNAR NRMSE evaluation and plot
+```{r echo=TRUE}
+MNAR_NRMSE_list <- NRMSE_cal_plot(MNAR_list, plot = T, x = 'Miss_Prop')
+```
+
+```{r echo=FALSE}
+kable(head(MNAR_NRMSE_list$NRMSE))
+cat('The above table shows the NRMSE of different imputaion methods')
+kable(head(MNAR_NRMSE_list$NRMSE_melt))
+cat('The above melted table is good for ggplot2')
+```
+
+## MNAR NRMSE rank evaluation and plot
+```{r echo=TRUE}
+MNAR_NRMSE_rank_list <- NRMSE_rank_cal_plot(MNAR_list, plot = T, x = 'Miss_Num')
+```
+
+```{r echo=FALSE}
+kable(head(MNAR_NRMSE_rank_list$NRMSE_rank))
+cat('The above table shows the NRMSE ranks of different imputaion methods')
+kable(head(MNAR_NRMSE_rank_list$NRMSE_rank_melt))
+cat('The above melted table is good for ggplot2')
+```
+
+## MNAR PCA Procrustes analysis and plot
+```{r echo=TRUE}
+MNAR_PCA_ProSS_list <- Procrustes_cal_plot(MNAR_list, DR = 'PCA', nPCs = 2, x = 'Miss_Num', plot = T)
+```
+
+```{r echo=FALSE}
+kable(head(MNAR_PCA_ProSS_list$Pro_SS))
+cat('The above table shows the Procrustes Sum of Squared Error of different imputaion methods')
+kable(head(MNAR_PCA_ProSS_list$Pro_SS_melt))
+cat('The above melted table is good for ggplot2')
+```
+
+## MNAR T-test results correlation
+```{r echo=TRUE}
+MNAR_Ttest_cor_list <- Ttest_cor_cal_plot(MNAR_list, group = group, plot = T, x = 'Miss_Num', cor = 'P')
+```
+```{r echo=FALSE}
+kable(head(MNAR_Ttest_cor_list$P_cor))
+cat('The above table shows the Pearson Correlation of log T-test P-values between imputed data and complete data')
+kable(head(MNAR_Ttest_cor_list$S_cor))
+cat('The above table shows the Spearman Correlation of T-test P-values between imputed data and complete data')
+```
+
+## MNAR PLS Procrustes analysis and plot
+```{r echo=TRUE}
+MNAR_PLS_ProSS_list <- Procrustes_cal_plot(MNAR_list, DR = 'PLS', nPCs = 2, outcome = group, x = 'Miss_Num', plot = T)
+```
+
+```{r echo=FALSE}
+kable(head(MNAR_PLS_ProSS_list$Pro_SS))
+cat('The above table shows the Procrustes Sum of Squared Error of different imputaion methods')
+kable(head(MNAR_PLS_ProSS_list$Pro_SS_melt))
+cat('The above melted table is good for ggplot2')
+```
+
