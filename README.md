@@ -1,4 +1,8 @@
 # MVI-evaluation
-Missing value imputation and evaluation, especially for metabolomics data sets
+Missing value imputation and evaluation, especially for MS-based metabolomics data sets
 
-You can add your imputation methods to the *Impute_wrapper.R* in the name of *XXX_wrapper* for the evaluations.
+*MVI_global.R* contains some global basic functions.
+
+*Impute_wrapper.R* contains different imputation wrapper functions, you can add your own imputation methods to the *Impute_wrapper.R* in the name of *XXX_wrapper* for the evaluations.
+
+*Imputation evaluations.R* contains our imputation evaluation pipeline (missng generation, imputations, evaluations).
