@@ -50,7 +50,7 @@ MNAR_gen_imp <- function(data_c, mis_var_prop = seq(.1, .8, .1), var_mis_prop = 
 }
 
 # NRMSE calculate and plot ------------------------------------------------
-NRMSE_cal_plot <- function(impute_results, plot = T, x = c('Miss_Prop', 'Miss_Num')[1]) {
+NRMSE_cal_plot <- function(impute_results, plot = T, x = c('Miss_Prop', 'Miss_Num')[1], sc=T) {
   name_list = gsub('(.*)_.*', '\\1', impute_results$impute_list)
   data_c <- impute_results$data_c
   param_df <- data.frame(mean=sapply(data_c, function(x) mean(x, na.rm=T)), 
@@ -64,9 +64,14 @@ NRMSE_cal_plot <- function(impute_results, plot = T, x = c('Miss_Prop', 'Miss_Nu
     data_m_temp <- data_c
     data_m_temp[results_temp[[length(results_temp)]]] <- NA
     for (j in seq_along(name_list)) {
-      nrmse_df[i, j] <- nrmse(scale_recover(results_temp[[j]], method = 'scale', param_df)[[1]],
-                              scale_recover(data_m_temp, method = 'scale', param_df)[[1]], 
-                              scale_recover(data_c, method = 'scale', param_df)[[1]])
+      if (sc) {
+        nrmse_df[i, j] <- nrmse(scale_recover(results_temp[[j]], method = 'scale', param_df)[[1]],
+                                scale_recover(data_m_temp, method = 'scale', param_df)[[1]], 
+                                scale_recover(data_c, method = 'scale', param_df)[[1]])
+      } else {
+        nrmse_df[i, j] <- nrmse(results_temp[[j]], data_m_temp, data_c)
+      }
+      
     }
     nrmse_df$Miss_Prop[i] <- mean(is.na(data_m_temp))
     nrmse_df$Miss_Num[i] <- data_m_temp %>% colSums %>% is.na %>% sum
@@ -78,7 +83,6 @@ NRMSE_cal_plot <- function(impute_results, plot = T, x = c('Miss_Prop', 'Miss_Nu
   }
   return(list(NRMSE = nrmse_df, NRMSE_melt = nrmse_df_melt))
 }
-
 
 # NRMSE rank calculate and plot -------------------------------------------
 NRMSE_rank_cal_plot <- function(impute_results, plot = T, x = 'Miss_Prop') {
